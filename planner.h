@@ -104,11 +104,14 @@ void print2DVector(vector<vector<T>> vec)
 class Env_res
 {
 public:
-    double res_size = 0.5; // default for now
+    double res_size = 1; // default for now
     // for now consider 8 connected grid
+    double m_res = (int) ceil(1/res_size);
     int NUMOFDIRS = 8;
-    int grid_x = (int) ceil(5/res_size);
-    int grid_y = (int) ceil(5/res_size);
+    // int grid_x = (int) ceil(5/res_size);
+    // int grid_y = (int) ceil(5/res_size);
+    int grid_x = 5*m_res;
+    int grid_y = 5*m_res;
     vector<vector<int> > grid{ vector<vector<int>> (grid_x, vector<int> (grid_y,0))}; // initiated to 0
     double* dX = new double[NUMOFDIRS] {-1, -1, -1,  0,  0,  1, 1, 1};
     double* dY = new double[NUMOFDIRS] {-1,  0,  1, -1,  1, -1, 0, 1};
@@ -139,10 +142,13 @@ public:
     }
     bool cont_to_disc(point p,point& p_g)
     {
-        if(fmod(p.x,res_size)<eps && fmod(p.y,res_size) <eps)
+        std::cout<<"\n multplied by "<<m_res<<" x "<<p.x*m_res<<" y "<< p.y*m_res<<"\n";
+        // if(fmod((p.x*m_res), 1.0)<eps && fmod((p.y*m_res),1.0)<eps)
         {
-            p_g.x =(int) ceil(p.x/res_size);
-            p_g.y = (int) ceil(p.y/res_size);
+            // p_g.x =(int) ceil(p.x/res_size);
+            // p_g.y = (int) ceil(p.y/res_size);
+            p_g.x =  round(p.x*m_res);
+            p_g.y =  round(p.y*m_res);
             return true;
         }
         return false;
@@ -203,13 +209,14 @@ public:
     {
         for(auto p : path)
         {
+            std::cout<<"p.x & p.y"<<p.x<<" "<<p.y;
             point p_g;
             if(!cont_to_disc(p,p_g))
             {
                 std::cout<<"res is not right \n";
                 break;
             }
-            std::cout<<"p.x & p.y"<<p.x<<" "<<p.y<<"p_g.x & p_g.y"<<p_g.x<<" "<<p_g.y<<"\n";
+            std::cout<<"p_g.x & p_g.y"<<p_g.x<<" "<<p_g.y<<"\n";
             grid[p_g.x][p_g.y] = 5;
         }
         print2DVector(grid);
@@ -217,41 +224,48 @@ public:
 };
 
 
-
-
-class partial_expansion_A_star : public Env_res
+class planner : public Env_res
 {
 public:
     point start;
     point goal;
+    planner(){};
+    ~planner(){};
+    planner(point start,point goal)
+    {
+        this->goal = goal;
+        this->start = start; 
+    }
+    Node s_start;
+    double heuristics(point& p)//in continous space
+    {// Euclidean dist currently for forward search
+        return round(1000*sqrt(pow((p.x-goal.x),2)+pow((p.y-goal.y),2)))/1000;
+    }
+    double cost(point& p1,point& p2)//in continous space
+    {// Euclidean dist currently for forward search
+        return round(1000*sqrt(pow((p1.x-p2.x),2)+pow((p1.y-p2.y),2)))/1000;
+    }
+    
+
+}; 
+
+class partial_expansion_A_star : public planner
+{
+public:
     partial_expansion_A_star(){};
     ~partial_expansion_A_star()
     {
         OPEN.clear();
         CLOSED.clear();
     }
-    partial_expansion_A_star(point start,point goal)
-    {
-        this->goal = goal;
-        this->start = start; 
-    }
-    Node s_start;
-    
+    partial_expansion_A_star(point start,point goal): planner(start,goal){}
+       
     // Node s_goal; I don't think this is currently necessary
     vector<Node> OPEN;// relook into data structure of OPEN maybe binary tree 
     vector<Node> CLOSED;
     unordered_map<int,Node> Union;
-    // unordered_map<Node,int> CLOSED;
     double w1 = 2; // weight
-    double heuristics(point& p)
-    {// Euclidean dist currently for forward search
-        return round(1000*sqrt(pow((p.x-goal.x),2)+pow((p.y-goal.y),2)))/1000;
-    }
-    double cost(point& p1,point& p2)
-    {// Euclidean dist currently for forward search
-        return round(1000*sqrt(pow((p1.x-p2.x),2)+pow((p1.y-p2.y),2)))/1000;
-    }
-    bool goal_reached(Node& n)
+    bool goal_reached(Node& n)//in continous space
     {
         std::cout<<" n "<<n.S.x<<" ,"<<n.S.y<<" goal "<<goal.x<<" ,"<<goal.y<<"\n";
         if(abs(n.S.x-goal.x)< eps && abs(n.S.y- goal.y)<eps)
@@ -262,6 +276,7 @@ public:
         }
         return false;
     }
+    
     void Init_planner()
     {
        s_start.current_ID = 0;
@@ -283,8 +298,6 @@ public:
                 return true;
         }
         return false;
-
-
     }
 
     bool in_OPEN_update(Node& min_node,point& succ)
@@ -295,14 +308,6 @@ public:
             // std::cout<<" ID "<<n.current_ID<<" fval "<<n.f<<"\n";
             if(n.S == succ)
             {
-                // Updating them maynot be really useful coz it's partial expansion Astar f value is bound to be diff
-                // double g = min_node.g + cost(succ,min_node.S);
-                // if(n.g > g)
-                // {
-                //     n.g = g;
-                //     n.f = g + heuristics(succ);
-                //     n.parent_ID = min_node.current_ID;
-                // }
                 // std::cout<<"found in open \n";
                 return true;
             }
@@ -316,7 +321,7 @@ public:
         min_node = OPEN.front();
         std::pop_heap(OPEN.begin(),OPEN.end(),compare());
         OPEN.pop_back();
-        std::cout<<" new min_node "<<min_node.current_ID<<" min node "<<min_node.S.x<<" ,"<<min_node.S.y<<"\n";
+        std::cout<<" new min_node "<<min_node.current_ID<<" min node "<<min_node.S.x<<" ,"<<min_node.S.y<<" f val "<<min_node.f<<"\n";
         return;
     }
     void add_node(int parent_ID,double& g,double& f,point& p)
@@ -341,16 +346,17 @@ public:
             if(goal_reached(min_node))break;
             double next_best = INT16_MAX;
             vector<point> all_succ = get_successors(min_node.S);
-            // std::cout<<" no of succ "<<all_succ.size()<<"\n";
-            // std::cout<<" OPEN and CLOSED nodes\n";
-            // for(auto n: OPEN)
-            // {
-            //     std::cout<<" ID "<<n.current_ID;//<<" f val "<<n.f;
-            // }
-            // for(auto n: CLOSED)
-            // {
-            //     std::cout<<" ID "<<n.current_ID;//<<" f val "<<n.f;
-            // }
+            std::cout<<" no of succ "<<all_succ.size()<<"\n";
+            std::cout<<" OPEN \n";
+            for(auto n: OPEN)
+            {
+                std::cout<<" ID "<<n.current_ID;//<<" f val "<<n.f;
+            }
+            std::cout<<"in closed \n";
+            for(auto n: CLOSED)
+            {
+                std::cout<<" ID "<<n.current_ID;//<<" f val "<<n.f;
+            }
             std::cout<<"OPEN.size "<<OPEN.size()<<"\n";
             for(auto succ : all_succ)
             {
@@ -379,7 +385,7 @@ public:
                 // std::cout<<" min_node ID "<<min_node.current_ID<<" f val "<<min_node.f<<"\n";
             }else
             {
-                // std::cout<<"in closed "<<min_node.current_ID;
+                std::cout<<"\n entered closed "<<min_node.current_ID<<" with f val"<<min_node.f<<"\n";
                 CLOSED.push_back(min_node);
             }
         }
