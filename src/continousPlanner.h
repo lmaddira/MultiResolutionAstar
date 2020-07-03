@@ -23,7 +23,7 @@ using namespace std;
 #endif
 
 #define PI 3.141592654
-
+#define MINSTEP 0.05
 int rand50() 
 { // rand() function will generate odd or even number with equal probability. If rand() generates odd number, the function will return 1 else it will return 0. 
     return rand() & 1; 
@@ -229,7 +229,7 @@ public:
         nearestNode(nearNode,sample);
         double dist =0;
         point interm;
-        int numofSamples = 10;// hardnumber for now, can change or can be a input or can have (radius/minstep) given a minstep for checking
+        int numofSamples = distance(nearNode.S,sample)/MINSTEP;
         for(int i=0;i<numofSamples;i++)
         {
             interm.x = nearNode.S.x + ((double)(i)/(numofSamples-1))*(sample.x - nearNode.S.x); 
@@ -239,7 +239,7 @@ public:
                 result = false;
                 break;
             }    
-            else if(!valid(interm))
+            else if(distance(interm,nearNode.S) > radius1 || !valid(interm))
             {
                 result = true;
                 break;
@@ -285,6 +285,7 @@ public:
         if(result)
             reconnectResult = reconnectToGrid(newNode);
     }
+    
 
 };
 

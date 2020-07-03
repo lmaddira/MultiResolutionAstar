@@ -1,0 +1,42 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/src/environment.h
+stdio.h
+-
+math.h
+-
+iostream
+-
+algorithm
+-
+vector
+-
+unordered_map
+-
+
+/home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/src/planner.cpp
+planner.h
+/home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/src/planner.h
+
+/home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/src/planner.h
+stdio.h
+-
+math.h
+-
+iostream
+-
+algorithm
+-
+vector
+-
+unordered_map
+-
+environment.h
+/home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/src/environment.h
+
