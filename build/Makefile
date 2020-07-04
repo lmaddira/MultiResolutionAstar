@@ -123,6 +123,19 @@ mixedplanner/fast:
 	$(MAKE) -f CMakeFiles/mixedplanner.dir/build.make CMakeFiles/mixedplanner.dir/build
 .PHONY : mixedplanner/fast
 
+#=============================================================================
+# Target rules for targets named visualisation
+
+# Build rule for target.
+visualisation: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 visualisation
+.PHONY : visualisation
+
+# fast build rule for target.
+visualisation/fast:
+	$(MAKE) -f CMakeFiles/visualisation.dir/build.make CMakeFiles/visualisation.dir/build
+.PHONY : visualisation/fast
+
 src/planner.o: src/planner.cpp.o
 
 .PHONY : src/planner.o
@@ -150,6 +163,33 @@ src/planner.cpp.s:
 	$(MAKE) -f CMakeFiles/mixedplanner.dir/build.make CMakeFiles/mixedplanner.dir/src/planner.cpp.s
 .PHONY : src/planner.cpp.s
 
+src/visualisation.o: src/visualisation.cpp.o
+
+.PHONY : src/visualisation.o
+
+# target to build an object file
+src/visualisation.cpp.o:
+	$(MAKE) -f CMakeFiles/visualisation.dir/build.make CMakeFiles/visualisation.dir/src/visualisation.cpp.o
+.PHONY : src/visualisation.cpp.o
+
+src/visualisation.i: src/visualisation.cpp.i
+
+.PHONY : src/visualisation.i
+
+# target to preprocess a source file
+src/visualisation.cpp.i:
+	$(MAKE) -f CMakeFiles/visualisation.dir/build.make CMakeFiles/visualisation.dir/src/visualisation.cpp.i
+.PHONY : src/visualisation.cpp.i
+
+src/visualisation.s: src/visualisation.cpp.s
+
+.PHONY : src/visualisation.s
+
+# target to generate assembly for a file
+src/visualisation.cpp.s:
+	$(MAKE) -f CMakeFiles/visualisation.dir/build.make CMakeFiles/visualisation.dir/src/visualisation.cpp.s
+.PHONY : src/visualisation.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -157,11 +197,15 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... rebuild_cache"
-	@echo "... mixedplanner"
 	@echo "... edit_cache"
+	@echo "... mixedplanner"
+	@echo "... visualisation"
 	@echo "... src/planner.o"
 	@echo "... src/planner.i"
 	@echo "... src/planner.s"
+	@echo "... src/visualisation.o"
+	@echo "... src/visualisation.i"
+	@echo "... src/visualisation.s"
 .PHONY : help
 
 

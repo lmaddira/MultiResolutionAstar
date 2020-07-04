@@ -1,22 +1,25 @@
-#include "planner.h"
+// Include standard headers
+#include <stdio.h>
+#include <stdlib.h>
+
+// Include GLEW
+#include <GL/glew.h>
+
+// Include GLFW
+#include <GLFW/glfw3.h>
 #include "visualisation.h"
-#include <GL/glut.h>
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
 
-int main(int argc, char** argv)
-{
-    Env_res env;
-    std::cout<< env.get_grid_x()<<" "<< env.get_grid_y()<<"\n";
-    env.grid_update();
-    point start(0,0);
-    point goal(4,4);
-    partial_expansion_A_star planner(start,goal);
-    planner.PEAstar();
-    vector<point> path = planner.find_path();
-    env.grid_path_viz(path);
 
-    GLFWwindow* window;
+// Include GLM
+#include <glm/glm.hpp>
+using namespace glm;
+
+
+int main( void )
+{
+	GLFWwindow* window;
 	// Initialise GLFW
 	if( !glfwInit() )
 	{
@@ -24,7 +27,6 @@ int main(int argc, char** argv)
 		getchar();
 		return -1;
 	}
-    glutInit(&argc,argv);
 	// Open a window and create its OpenGL context
 	window = glfwCreateWindow( SCREEN_WIDTH, SCREEN_HEIGHT, "Display", NULL, NULL);
 	if( !window){
@@ -40,21 +42,21 @@ int main(int argc, char** argv)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(0,SCREEN_WIDTH,0,SCREEN_HEIGHT,0,1);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+	Env_res env;
 	// glClearColor(0,100,255,1);
 	//Loop until the user closes the window
     while(!glfwWindowShouldClose(window))
     {
         glClear(GL_COLOR_BUFFER_BIT);
 		Draw_environment(env);
-        Draw_path(env,path);
-        writeText(env,start.x,start.y,"start");
-        writeText(env,goal.x,goal.y,"goal");
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 	// Close OpenGL window and terminate GLFW
 	glfwTerminate();
 
-
-    return 0;
+	return 0;
 }
+

@@ -92,9 +92,8 @@ mixedplanner: CMakeFiles/mixedplanner.dir/src/planner.cpp.o
 mixedplanner: CMakeFiles/mixedplanner.dir/build.make
 mixedplanner: /usr/lib/x86_64-linux-gnu/libGL.so
 mixedplanner: /usr/lib/x86_64-linux-gnu/libGLU.so
-mixedplanner: /usr/lib/x86_64-linux-gnu/libglut.so
-mixedplanner: /usr/lib/x86_64-linux-gnu/libXmu.so
-mixedplanner: /usr/lib/x86_64-linux-gnu/libXi.so
+mixedplanner: /usr/lib/x86_64-linux-gnu/libGLEW.so
+mixedplanner: /usr/lib/x86_64-linux-gnu/libglfw.so.3.2
 mixedplanner: CMakeFiles/mixedplanner.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir="/home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable mixedplanner"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/mixedplanner.dir/link.txt --verbose=$(VERBOSE)

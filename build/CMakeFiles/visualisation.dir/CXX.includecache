@@ -20,29 +20,19 @@ vector
 unordered_map
 -
 
-/home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/src/planner.cpp
-planner.h
-/home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/src/planner.h
-visualisation.h
-/home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/src/visualisation.h
-GL/glut.h
--
-
-/home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/src/planner.h
+/home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/src/visualisation.cpp
 stdio.h
 -
-math.h
+stdlib.h
 -
-iostream
+GL/glew.h
 -
-algorithm
+GLFW/glfw3.h
 -
-vector
+visualisation.h
+/home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/src/visualisation.h
+glm/glm.hpp
 -
-unordered_map
--
-environment.h
-/home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/src/environment.h
 
 /home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/src/visualisation.h
 stdio.h

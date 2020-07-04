@@ -1,3 +1,4 @@
 /home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/build/CMakeFiles/rebuild_cache.dir
-/home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/build/CMakeFiles/mixedplanner.dir
 /home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/build/CMakeFiles/edit_cache.dir
+/home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/build/CMakeFiles/mixedplanner.dir
+/home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/build/CMakeFiles/visualisation.dir
