@@ -20,9 +20,11 @@ find_package(glfw3 REQUIRED)
 
 include_directories( ${OPENGL_INCLUDE_DIRS} ${GLEW_LIBRARIES} ${GLFW_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} )
 # /home/Downloads/glfw-3.3.2/include
-
-add_executable(mixedplanner src/planner.cpp src/planner.h src/environment.h src/continousPlanner.h src/visualisation.h)
-target_link_libraries(mixedplanner ${OPENGL_LIBRARY} ${GLEW_LIBRARIES} glfw glut)
-
-add_executable(visualisation src/visualisation.cpp)
+add_library(visualisation src/visualisation.cpp src/visualisation.h)
 target_link_libraries(visualisation ${OPENGL_LIBRARY} ${GLEW_LIBRARIES} glfw glut)
+
+add_executable(mixedplanner src/planner.cpp src/planner.h src/environment.h src/continousPlanner.h)
+target_link_libraries(mixedplanner visualisation ${OPENGL_LIBRARY} ${GLEW_LIBRARIES} glfw glut)
+
+# add_executable(visualisation src/visualisation.cpp)
+# target_link_libraries(visualisation ${OPENGL_LIBRARY} ${GLEW_LIBRARIES} glfw glut)

@@ -21,18 +21,8 @@ unordered_map
 -
 
 /home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/src/visualisation.cpp
-stdio.h
--
-stdlib.h
--
-GL/glew.h
--
-GLFW/glfw3.h
--
 visualisation.h
 /home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/src/visualisation.h
-glm/glm.hpp
--
 
 /home/lakshmi/Documents/summer projects/Max/MultiResolutionAstar/src/visualisation.h
 stdio.h

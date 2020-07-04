@@ -111,19 +111,6 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named mixedplanner
-
-# Build rule for target.
-mixedplanner: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 mixedplanner
-.PHONY : mixedplanner
-
-# fast build rule for target.
-mixedplanner/fast:
-	$(MAKE) -f CMakeFiles/mixedplanner.dir/build.make CMakeFiles/mixedplanner.dir/build
-.PHONY : mixedplanner/fast
-
-#=============================================================================
 # Target rules for targets named visualisation
 
 # Build rule for target.
@@ -135,6 +122,19 @@ visualisation: cmake_check_build_system
 visualisation/fast:
 	$(MAKE) -f CMakeFiles/visualisation.dir/build.make CMakeFiles/visualisation.dir/build
 .PHONY : visualisation/fast
+
+#=============================================================================
+# Target rules for targets named mixedplanner
+
+# Build rule for target.
+mixedplanner: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 mixedplanner
+.PHONY : mixedplanner
+
+# fast build rule for target.
+mixedplanner/fast:
+	$(MAKE) -f CMakeFiles/mixedplanner.dir/build.make CMakeFiles/mixedplanner.dir/build
+.PHONY : mixedplanner/fast
 
 src/planner.o: src/planner.cpp.o
 
@@ -198,8 +198,8 @@ help:
 	@echo "... depend"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... mixedplanner"
 	@echo "... visualisation"
+	@echo "... mixedplanner"
 	@echo "... src/planner.o"
 	@echo "... src/planner.i"
 	@echo "... src/planner.s"

@@ -90,6 +90,7 @@ mixedplanner_EXTERNAL_OBJECTS =
 
 mixedplanner: CMakeFiles/mixedplanner.dir/src/planner.cpp.o
 mixedplanner: CMakeFiles/mixedplanner.dir/build.make
+mixedplanner: libvisualisation.a
 mixedplanner: /usr/lib/x86_64-linux-gnu/libGL.so
 mixedplanner: /usr/lib/x86_64-linux-gnu/libGLU.so
 mixedplanner: /usr/lib/x86_64-linux-gnu/libGLEW.so
