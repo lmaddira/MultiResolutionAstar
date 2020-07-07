@@ -80,11 +80,8 @@ void visualise::Draw_obstacles()
 
 void visualise::Draw_path(std::vector<point>& path,point& start, point& goal)
 {
-	initialise();
-	while(!glfwWindowShouldClose(window))
-    {
-        glClear(GL_COLOR_BUFFER_BIT);
-		Draw_environment();
+	
+	
         glColor3ub(0,0,255);
 		glBegin(GL_LINE_STRIP);
 		glPointSize(100);
@@ -97,11 +94,7 @@ void visualise::Draw_path(std::vector<point>& path,point& start, point& goal)
 		glEnd();
         writeText(start.x,start.y,"start");
         writeText(goal.x,goal.y,"goal");
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
-	// Close OpenGL window and terminate GLFW
-	glfwTerminate();
+       
 }
 void visualise::writeText(int x, int y, char *string)
 {

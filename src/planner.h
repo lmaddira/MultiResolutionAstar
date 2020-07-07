@@ -8,6 +8,7 @@
 #include <vector>
 #include <unordered_map>
 #include "environment.h"
+#include "continousPlanner.h"
 using namespace std;
 
 class planner : public Env_res
@@ -85,7 +86,7 @@ public:
         return;
     }
 
-    
+       
 
 };
 
@@ -158,7 +159,64 @@ public:
         std::cout<<" new min_node "<<min_node.current_ID<<" min node "<<min_node.S.x<<" ,"<<min_node.S.y<<" f val "<<min_node.f<<"\n";
         return;
     }
+    void get_minNode_closed(Node& min_node)
+    {
+        std::make_heap(CLOSED.begin(),CLOSED.end(),compare());
+        std::push_heap(CLOSED.begin(),CLOSED.end(),compare());
+        min_node = CLOSED.front();
+        std::pop_heap(CLOSED.begin(),CLOSED.end(),compare());
+        CLOSED.pop_back();
+        std::cout<<" new min_node "<<min_node.current_ID<<" min node "<<min_node.S.x<<" ,"<<min_node.S.y<<" f val "<<min_node.f<<"\n";
+        return;
+    }
     void PEAstar()
+    {
+        double next_best = INT16_MAX;
+        vector<point> all_succ = get_successors(min_node.S);
+        // std::cout<<" no of succ "<<all_succ.size()<<"\n";
+        // std::cout<<" OPEN \n";
+        // for(auto n: OPEN)
+        // {
+        //     std::cout<<" ID "<<n.current_ID;//<<" f val "<<n.f;
+        // }
+        // std::cout<<"in closed \n";
+        // for(auto n: CLOSED)
+        // {
+        //     std::cout<<" ID "<<n.current_ID;//<<" f val "<<n.f;
+        // }
+        // std::cout<<"OPEN.size "<<OPEN.size()<<"\n";
+        for(auto succ : all_succ)
+        {
+            if(inBounds(succ) && !in_CLOSED(succ))
+            {
+                if(!in_OPEN_update(min_node,succ))
+                {
+                    double g = min_node.g + cost(succ,min_node.S);
+                    double f = g + w1* heuristics(succ);
+                    f = round(1000*f)/1000;
+                    // std::cout<<" f val "<<f;
+                    if(min_node.f == f)
+                        add_node_OPEN(min_node.current_ID,g,f,succ);
+                    else
+                    {
+                        if(next_best > f)
+                            next_best = f;
+                    }
+                }
+            }
+        }
+        if(next_best<INT16_MAX)
+        {
+            min_node.f = next_best;
+            OPEN.push_back(min_node);
+            // std::cout<<" min_node ID "<<min_node.current_ID<<" f val "<<min_node.f<<"\n";
+        }else
+        {
+            std::cout<<"\n entered closed "<<min_node.current_ID<<" with f val"<<min_node.f<<"\n";
+            CLOSED.push_back(min_node);
+        }
+    }
+    void PEAstar_standalone()
     {
         Init_planner();
         int count = 0;
@@ -170,18 +228,18 @@ public:
             if(goal_reached(min_node))break;
             double next_best = INT16_MAX;
             vector<point> all_succ = get_successors(min_node.S);
-            std::cout<<" no of succ "<<all_succ.size()<<"\n";
-            std::cout<<" OPEN \n";
-            for(auto n: OPEN)
-            {
-                std::cout<<" ID "<<n.current_ID;//<<" f val "<<n.f;
-            }
-            std::cout<<"in closed \n";
-            for(auto n: CLOSED)
-            {
-                std::cout<<" ID "<<n.current_ID;//<<" f val "<<n.f;
-            }
-            std::cout<<"OPEN.size "<<OPEN.size()<<"\n";
+            // std::cout<<" no of succ "<<all_succ.size()<<"\n";
+            // std::cout<<" OPEN \n";
+            // for(auto n: OPEN)
+            // {
+            //     std::cout<<" ID "<<n.current_ID;//<<" f val "<<n.f;
+            // }
+            // std::cout<<"in closed \n";
+            // for(auto n: CLOSED)
+            // {
+            //     std::cout<<" ID "<<n.current_ID;//<<" f val "<<n.f;
+            // }
+            // std::cout<<"OPEN.size "<<OPEN.size()<<"\n";
             for(auto succ : all_succ)
             {
                 if(inBounds(succ) && !in_CLOSED(succ))

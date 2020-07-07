@@ -184,108 +184,141 @@ class continousPlanner : public partial_expansion_A_star
 {
 public:
     
-    double radius1 = 0.3; // this is the upper bound for extension of the point subject to changes later or can be an input from main
-    double radius2 = 0.3; // ditto as above comment
-    continousPlanner(){}
-    ~continousPlanner(){}
-    point RandomSample()
-    {
-        point p;
-        p.x = fmod(rand(),map_x);
-        p.y = fmod(rand(),map_y);
-        return p;
-    }
-    point goalSample()
-    {
-        return goal;
-    } 
+  double radius1 = 0.3; // this is the upper bound for extension of the point subject to changes later or can be an input from main
+  double radius2 = 0.3; // ditto as above comment
+  double weight = 1.1;
+  continousPlanner(){}
+  ~continousPlanner(){}
+  point RandomSample()
+  {
+      point p;
+      p.x = fmod(rand(),map_x);
+      p.y = fmod(rand(),map_y);
+      return p;
+  }
+  point goalSample()
+  {
+      return goal;
+  } 
 
-    void nearestNode(Node& nearNode,point& sample)
-    {
-        double min_dist = INT16_MAX;
-        for(int i=0;i<CLOSED.size();i++)
-        {
-            double dist = distance(sample,CLOSED[i].S);
-            if(min_dist > dist)
-            {
-                min_dist = dist;
-                nearNode = CLOSED[i];
-            }
-        }
-        for(int i=0;i<CSPACE.size();i++)
-        {
-            double dist = distance(sample,CSPACE[i].S);
-            if(min_dist > dist)
-            {
-                min_dist = dist;
-                nearNode = CSPACE[i];
-            }
-        }
-    }
-    bool extend(Node& newNode,point sample) // true if new node has been found else false
-    {
-        Node nearNode;
-        bool result;
-        nearestNode(nearNode,sample);
-        double dist =0;
-        point interm;
-        int numofSamples = distance(nearNode.S,sample)/MINSTEP;
-        for(int i=0;i<numofSamples;i++)
-        {
-            interm.x = nearNode.S.x + ((double)(i)/(numofSamples-1))*(sample.x - nearNode.S.x); 
-            interm.y = nearNode.S.y + ((double)(i)/(numofSamples-1))*(sample.y - nearNode.S.y);
-            if(!valid(interm) && i <= 1)
-            {
-                result = false;
-                break;
-            }    
-            else if(distance(interm,nearNode.S) > radius1 || !valid(interm))
-            {
-                result = true;
-                break;
-            }
-        }
-        if(result)
-        {
-            newNode.S = interm;
-            add_node_CSPACE(nearNode,newNode);
-        }
-        return result;
-    }
-    bool reconnectToGrid(Node& newNode)
-    {  
-        // there can be a better way of doing this Check that
-        double min_dist = radius2;
-        for(int i=0;i<grid_x;i++)
-        {
-            for(int j=0;j< grid_y;j++)
-            {
-                point p(i*res_size,j*res_size,0);
-                double dist = distance(p,newNode.S);
-                if(dist < radius2)
-                {
-                    addReconnectNodeToOPEN(newNode,p);
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+  void nearestNode(Node& nearNode,point& sample)
+  {
+      double min_dist = INT16_MAX;
+      for(int i=0;i<CLOSED.size();i++)
+      {
+          double dist = distance(sample,CLOSED[i].S);
+          if(min_dist > dist)
+          {
+              min_dist = dist;
+              nearNode = CLOSED[i];
+          }
+      }
+      for(int i=0;i<CSPACE.size();i++)
+      {
+          double dist = distance(sample,CSPACE[i].S);
+          if(min_dist > dist)
+          {
+              min_dist = dist;
+              nearNode = CSPACE[i];
+          }
+      }
+  }
+  bool extend(Node& newNode,point sample) // true if new node has been found else false
+  {
+      Node nearNode;
+      bool result;
+      nearestNode(nearNode,sample);
+      double dist =0;
+      point interm;
+      int numofSamples = distance(nearNode.S,sample)/MINSTEP;
+      for(int i=0;i<numofSamples;i++)
+      {
+          interm.x = nearNode.S.x + ((double)(i)/(numofSamples-1))*(sample.x - nearNode.S.x); 
+          interm.y = nearNode.S.y + ((double)(i)/(numofSamples-1))*(sample.y - nearNode.S.y);
+          if(!valid(interm) && i <= 1)
+          {
+              result = false;
+              break;
+          }    
+          else if(distance(interm,nearNode.S) > radius1 || !valid(interm))
+          {
+              result = true;
+              break;
+          }
+      }
+      if(result)
+      {
+          newNode.S = interm;
+          add_node_CSPACE(nearNode,newNode);
+      }
+      return result;
+  }
+  bool reconnectToGrid(Node& newNode)
+  {  
+      // there can be a better way of doing this Check that
+      double min_dist = radius2;
+      for(int i=0;i<grid_x;i++)
+      {
+          for(int j=0;j< grid_y;j++)
+          {
+              point p(i*res_size,j*res_size,0);
+              double dist = distance(p,newNode.S);
+              if(dist < radius2)
+              {
+                  addReconnectNodeToOPEN(newNode,p);
+                  return true;
+              }
+          }
+      }
+      return false;
+  }
 
-    void cont_planner()
+  void cont_planner()
+  {
+      point r;
+      if(rand75())
+          r = RandomSample();
+      else
+          r = goalSample();
+      Node newNode;
+      bool result = extend(newNode,r); // adds new node to CSPACE as well
+      bool reconnectResult;
+      if(result)
+          reconnectResult = reconnectToGrid(newNode);
+  }
+  std::vector<point> mixedPlan()
+  {
+    while(1)
     {
-        point r;
-        if(rand75())
-            r = RandomSample();
+      if(OPEN.size() != 0 && CLOSED.size() == 0)
+      {
+        Node min_node;
+        get_minNode(min_node);
+        if(goal_reached(min_node)) break;
+        PEAstar();        
+      }
+      else{
+        if(OPEN.size() == 0)
+        {
+          cont_planner();
+        }
         else
-            r = goalSample();
-        Node newNode;
-        bool result = extend(newNode,r); // adds new node to CSPACE as well
-        bool reconnectResult;
-        if(result)
-            reconnectResult = reconnectToGrid(newNode);
+        {
+          Node open_minkey;
+          Node closed_minkey;
+          get_minNode(open_minkey);
+          get_minNode_closed(closed_minkey);
+          if( rand50() && (open_minkey.f < weight * closed_minkey.f ))
+            PEAstar();
+          }else
+          {
+            cont_planner();
+          } 
+        } 
+      }
     }
-    
+  }
+  
 
 };
 
