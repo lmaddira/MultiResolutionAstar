@@ -105,7 +105,7 @@ void print2DVector(vector<vector<T>> vec)
 class Env_res
 {
 public:
-    double res_size = 0.5; // default for now
+    double res_size = 0.25; // default for now
     // for now consider 8 connected grid
     double m_res = (int) ceil(1/res_size);
     int NUMOFDIRS = 8;

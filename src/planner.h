@@ -8,7 +8,7 @@
 #include <vector>
 #include <unordered_map>
 #include "environment.h"
-#include "continousPlanner.h"
+// #include "continousPlanner.h"
 using namespace std;
 
 class planner : public Env_res
@@ -45,6 +45,20 @@ public:
     {// Euclidean dist currently for forward search
         return round(1000*sqrt(pow((p1.x-p2.x),2)+pow((p1.y-p2.y),2)))/1000;
     }
+    bool in_OPEN(point& succ)
+    {
+        // std::cout<<"in open ";
+        for(auto n : OPEN)
+        {
+            // std::cout<<" ID "<<n.current_ID<<" fval "<<n.f<<"\n";
+            if(n.S == succ)
+            {
+                // std::cout<<"found in open \n";
+                return true;
+            }
+        }
+        return false;
+    }
     void add_node_OPEN(int parent_ID,double& g,double& f,point& p)
     {
         Node n(parent_ID,p);
@@ -52,7 +66,7 @@ public:
         n.f = round(f*1000)/1000;
         n.current_ID = OPEN.size()+CLOSED.size()+CSPACE.size()+1;// to be changed with additional CSpace
         OPEN.push_back(n);
-        std::cout<<" new node ID"<<n.current_ID<<" f val"<<f<<"point "<<n.S.x<<" ,"<<n.S.y<<" parent "<<n.parent_ID<<"\n";
+        std::cout<<" new node ID OPEn "<<n.current_ID<<" f val"<<f<<"point "<<n.S.x<<" ,"<<n.S.y<<" parent "<<n.parent_ID<<"\n";
         return ;
     }
     void add_node_CSPACE(Node& parent,Node& newNode)
@@ -62,15 +76,20 @@ public:
         newNode.f = newNode.g + heuristics(newNode.S);
         newNode.current_ID = OPEN.size()+CLOSED.size()+CSPACE.size()+1;
         CSPACE.push_back(newNode);
+        std::cout<<" new node ID cspace "<<newNode.current_ID<<" f val"<<newNode.f<<"point "<<newNode.S.x<<" ,"<<newNode.S.y<<" parent "<<newNode.parent_ID<<"\n";
         return;
     }
     void addReconnectNodeToOPEN(Node& parent,point& p)
     {
-        Node n(parent.current_ID,p);
-        n.g = parent.g + cost(parent.S,p);
-        n.f = n.g + heuristics(p);
-        n.current_ID = OPEN.size()+CLOSED.size()+CSPACE.size()+1;// to be changed with additional CSpace
-        OPEN.push_back(n);
+        if(valid(p) && !in_OPEN(p))
+        {
+            Node n(parent.current_ID,p);
+            n.g = parent.g + cost(parent.S,p);
+            n.f = n.g + heuristics(p);
+            n.current_ID = OPEN.size()+CLOSED.size()+CSPACE.size()+1;// to be changed with additional CSpace
+            OPEN.push_back(n);
+            std::cout<<" new node ID reconnect "<<n.current_ID<<" f val"<<n.f<<"point "<<n.S.x<<" ,"<<n.S.y<<" parent "<<n.parent_ID<<"\n";
+        }
         return ;
     }
     void generateUnion()
@@ -84,9 +103,7 @@ public:
         for(auto n:CSPACE)
             Union.insert(make_pair(n.current_ID,n));
         return;
-    }
-
-       
+    }    
 
 };
 
@@ -102,10 +119,10 @@ public:
     double w1 = 2; // weight
     bool goal_reached(Node& n)//in continous space
     {
-        std::cout<<" n "<<n.S.x<<" ,"<<n.S.y<<" goal "<<goal.x<<" ,"<<goal.y<<"\n";
+        // std::cout<<" n "<<n.S.x<<" ,"<<n.S.y<<" goal "<<goal.x<<" ,"<<goal.y<<"\n";
         if(abs(n.S.x-goal.x)< eps && abs(n.S.y- goal.y)<eps)
         {
-            std::cout<<" got here \n";
+            std::cout<<" reached goal \n";
             CLOSED.push_back(n);
             return true;
         }
@@ -135,20 +152,7 @@ public:
         return false;
     }
 
-    bool in_OPEN_update(Node& min_node,point& succ)
-    {
-        // std::cout<<"in open ";
-        for(auto n : OPEN)
-        {
-            // std::cout<<" ID "<<n.current_ID<<" fval "<<n.f<<"\n";
-            if(n.S == succ)
-            {
-                // std::cout<<"found in open \n";
-                return true;
-            }
-        }
-        return false;
-    }
+    
     void get_minNode(Node& min_node)
     {
         std::make_heap(OPEN.begin(),OPEN.end(),compare());
@@ -164,32 +168,32 @@ public:
         std::make_heap(CLOSED.begin(),CLOSED.end(),compare());
         std::push_heap(CLOSED.begin(),CLOSED.end(),compare());
         min_node = CLOSED.front();
-        std::pop_heap(CLOSED.begin(),CLOSED.end(),compare());
-        CLOSED.pop_back();
-        std::cout<<" new min_node "<<min_node.current_ID<<" min node "<<min_node.S.x<<" ,"<<min_node.S.y<<" f val "<<min_node.f<<"\n";
+        // std::pop_heap(CLOSED.begin(),CLOSED.end(),compare());
+        // CLOSED.pop_back();
+        std::cout<<" new min_node closed "<<min_node.current_ID<<" min node "<<min_node.S.x<<" ,"<<min_node.S.y<<" f val "<<min_node.f<<"\n";
         return;
     }
-    void PEAstar()
+    void PEAstar(Node& min_node)
     {
         double next_best = INT16_MAX;
         vector<point> all_succ = get_successors(min_node.S);
         // std::cout<<" no of succ "<<all_succ.size()<<"\n";
-        // std::cout<<" OPEN \n";
-        // for(auto n: OPEN)
-        // {
-        //     std::cout<<" ID "<<n.current_ID;//<<" f val "<<n.f;
-        // }
-        // std::cout<<"in closed \n";
-        // for(auto n: CLOSED)
-        // {
-        //     std::cout<<" ID "<<n.current_ID;//<<" f val "<<n.f;
-        // }
-        // std::cout<<"OPEN.size "<<OPEN.size()<<"\n";
+        std::cout<<" OPEN \n";
+        for(auto n: OPEN)
+        {
+            std::cout<<" ID "<<n.current_ID;//<<" f val "<<n.f;
+        }
+        std::cout<<"\n in closed";
+        for(auto n: CLOSED)
+        {
+            std::cout<<" ID "<<n.current_ID;//<<" f val "<<n.f;
+        }
+        std::cout<<"\n OPEN.size "<<OPEN.size()<<"\n";
         for(auto succ : all_succ)
         {
             if(inBounds(succ) && !in_CLOSED(succ))
             {
-                if(!in_OPEN_update(min_node,succ))
+                if(!in_OPEN(succ))
                 {
                     double g = min_node.g + cost(succ,min_node.S);
                     double f = g + w1* heuristics(succ);
@@ -244,7 +248,7 @@ public:
             {
                 if(inBounds(succ) && !in_CLOSED(succ))
                 {
-                    if(!in_OPEN_update(min_node,succ))
+                    if(!in_OPEN(succ))
                     {
                         double g = min_node.g + cost(succ,min_node.S);
                         double f = g + w1* heuristics(succ);
@@ -286,7 +290,7 @@ public:
                 count++;
                 auto current_node = Union.at(current);
                 path.push_back(current_node.S);
-                std::cout<<"current "<<current<<"\n";
+                std::cout<<"current id "<<current<<" x "<<current_node.S.x<<" y "<<current_node.S.y<<"\n";
                 current = current_node.parent_ID;
             }
             path.push_back(Union.at(current).S);

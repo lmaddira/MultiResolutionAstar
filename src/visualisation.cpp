@@ -1,4 +1,4 @@
-
+#include <iostream>
 #include "visualisation.h"
 
 void visualise::initialise()
@@ -82,18 +82,18 @@ void visualise::Draw_path(std::vector<point>& path,point& start, point& goal)
 {
 	
 	
-        glColor3ub(0,0,255);
-		glBegin(GL_LINE_STRIP);
-		glPointSize(100);
-		for(int i=0;i<path.size();i++)
-		{
-			float x = x1 + border/2+( path[i].x * scaling_factor);
-			float y = y1 + border/2+( path[i].y * scaling_factor);
-			glVertex2f(x,y);
-		}    
-		glEnd();
-        writeText(start.x,start.y,"start");
-        writeText(goal.x,goal.y,"goal");
+	glColor3ub(0,0,255);
+	glBegin(GL_LINE_STRIP);
+	glPointSize(100);
+	for(int i=0;i<path.size();i++)
+	{
+		float x = x1 + border/2+( path[i].x * scaling_factor);
+		float y = y1 + border/2+( path[i].y * scaling_factor);
+		glVertex2f(x,y);
+	}    
+	glEnd();
+	writeText(start.x,start.y,"start");
+	writeText(goal.x,goal.y,"goal");
        
 }
 void visualise::writeText(int x, int y, char *string)
@@ -127,4 +127,69 @@ void visualise::Draw_environment()
 	Draw_obstacles();
 	
 }
+void visualise::Draw_OPEN(vector<Node>& OPEN)
+{
+	if(OPEN.size()!=0)
+	{
+		glColor3ub(0,0,255);// blue
+		glPointSize(pointsize);
+		glBegin(GL_POINTS);
+		// std::cout<<"Drawing OPEN with size "<<OPEN.size();
+		for(int i=0;i<OPEN.size();i++)
+		{
+			
+			float x = x1 + border/2+( OPEN[i].S.x * scaling_factor);
+			float y = y1 + border/2+( OPEN[i].S.y * scaling_factor);
+			glVertex2f(x,y);
+		}    
+		glEnd();
+	}
+}
+void visualise::Draw_CLOSED(vector<Node>& CLOSED)
+{
+	if(CLOSED.size()!=0)
+	{
+		glColor3ub(255,255,0);// yellow
+		glPointSize(pointsize);
+		glBegin(GL_POINTS);
+		for(int i=0;i<CLOSED.size();i++)
+		{
+
+			float x = x1 + border/2+( CLOSED[i].S.x * scaling_factor);
+			float y = y1 + border/2+( CLOSED[i].S.y * scaling_factor);
+			glVertex2f(x,y);
+		}    
+		glEnd();
+
+	}
+	
+}
+void visualise::Draw_CSPACE(vector<Node>& CSPACE){
+	if(CSPACE.size()!=0)
+	{
+		glColor3ub(255,0,0);// red
+		glPointSize(pointsize);
+		glBegin(GL_POINTS);
+		for(int i=0;i<CSPACE.size();i++)
+		{
+
+			float x = x1 + border/2+( CSPACE[i].S.x * scaling_factor);
+			float y = y1 + border/2+( CSPACE[i].S.y * scaling_factor);
+			glVertex2f(x,y);
+		}    
+		glEnd();
+	}
+}
+void visualise::Draw_point(point& p)
+{
+	glColor3ub(0,0,0);// red
+	glPointSize(pointsize);
+	glBegin(GL_POINTS);
+	float x = x1 + border/2+( p.x * scaling_factor);
+	float y = y1 + border/2+( p.y * scaling_factor);
+	glVertex2f(x,y);    
+	glEnd();
+
+}
+
 
