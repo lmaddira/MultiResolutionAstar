@@ -12,6 +12,7 @@
 #include <ctime>
 #include "environment.h"
 #include "planner.h"
+#include "../Dubins_Path/include/dubins.h"
 using namespace std;
 
 #if !defined(MAX)
@@ -195,6 +196,8 @@ class continuousPlanner : public partial_expansion_A_star
       point p;
       p.x = fmod(rand(),map_x);
       p.y = fmod(rand(),map_y);
+      int theta_index = fmod(rand(),NUMOFTHETAS);
+      p.theta = Theta[theta_index]; // we can later change this to random number
       return p;
     }
     point obstacleSample()
@@ -202,6 +205,7 @@ class continuousPlanner : public partial_expansion_A_star
       point p;
       p.x = 2.3;
       p.y = 2;
+      p.theta = goal.theta; // change later to arctan2(delX/delY);
       return p;
     }
     point goalSample()
@@ -212,6 +216,7 @@ class continuousPlanner : public partial_expansion_A_star
     void nearestNode(Node& nearNode,point& sample)
     {
         double min_dist = INT16_MAX;
+        nearNode.S = start;
         for(int i=0;i<CLOSED.size();i++)
         {
             double dist = distance(sample,CLOSED[i].S);
@@ -219,24 +224,34 @@ class continuousPlanner : public partial_expansion_A_star
             {
                 min_dist = dist;
                 nearNode = CLOSED[i];
+            }else if(min_dist == dist && (abs(sample.theta - CLOSED[i].S.theta) < abs(sample.theta - nearNode.S.theta)))
+            {
+              min_dist = dist;
+              nearNode = CLOSED[i];
             }
         }
         for(int i=0;i<CSPACE.size();i++)
         {
             double dist = distance(sample,CSPACE[i].S);
+
             if(min_dist > dist)
             {
                 min_dist = dist;
                 nearNode = CSPACE[i];
+            }else if(min_dist == dist && (abs(sample.theta - CSPACE[i].S.theta) < abs(sample.theta - nearNode.S.theta)))
+            {
+              min_dist = dist;
+              nearNode = CSPACE[i];
             }
         }
     }
-    bool extend(Node& newNode,point sample) // true if new node has been found else false
+    // extend using dubins path
+    bool extend_dubinsPath(Node& newNode,point sample) // true if new node has been found else false
     {
         Node nearNode;
         bool result = false;
         nearestNode(nearNode,sample);
-        std::cout<<" nearest node is x "<<nearNode.S.x<<" y "<<nearNode.S.y<<"\n";
+        std::cout<<" nearest node is x "<<nearNode.S.x<<" y "<<nearNode.S.y<<" theta "<<nearNode.S.theta<<"\n";
         double dist =0;
         point interm;
         int numofSamples = distance(nearNode.S,sample)/MINSTEP;
@@ -245,14 +260,51 @@ class continuousPlanner : public partial_expansion_A_star
         {
             interm.x = nearNode.S.x + ((double)(i)/(numofSamples-1))*(sample.x - nearNode.S.x); 
             interm.y = nearNode.S.y + ((double)(i)/(numofSamples-1))*(sample.y - nearNode.S.y);
-            std::cout<<"interm point "<<interm.x <<" "<<interm.y<<" ";
-            if(!valid(interm) && i <= 1)
+            interm.theta = nearNode.S.theta + ((double)(i)/(numofSamples-1))*(sample.theta - nearNode.S.theta);
+            std::cout<<"interm point "<<interm.x <<" "<<interm.y<<" "<<interm.theta;
+            if(!valid(interm.x,interm.y) && i <= 1)
             {
-                std::cout<<" this point not valid "<<interm.x<<" "<<interm.y<<"\n";
+                std::cout<<" this point not valid "<<interm.x<<" "<<interm.y<<" "<<interm.theta<<"\n";
                 result = false;
                 break;
             }    
-            else if(distance(interm,nearNode.S) > radius1 || !valid(interm))
+            else if(distance(interm,nearNode.S) > radius1 || !valid(interm.x,interm.y))
+            {
+                result = true;
+                break;
+            }
+        }
+        if(result)
+        {
+            newNode.S = interm;
+            add_node_CSPACE(nearNode,newNode);
+        }
+        return result;
+    }
+    // in general random extention
+    bool extend(Node& newNode,point sample) // true if new node has been found else false
+    {
+        Node nearNode;
+        bool result = false;
+        nearestNode(nearNode,sample);
+        std::cout<<" nearest node is x "<<nearNode.S.x<<" y "<<nearNode.S.y<<" theta "<<nearNode.S.theta<<"\n";
+        double dist =0;
+        point interm;
+        int numofSamples = distance(nearNode.S,sample)/MINSTEP;
+        std::cout<<"distance "<<distance(nearNode.S,sample)<<"\n";
+        for(int i=0;i<numofSamples;i++)
+        {
+            interm.x = nearNode.S.x + ((double)(i)/(numofSamples-1))*(sample.x - nearNode.S.x); 
+            interm.y = nearNode.S.y + ((double)(i)/(numofSamples-1))*(sample.y - nearNode.S.y);
+            interm.theta = nearNode.S.theta + ((double)(i)/(numofSamples-1))*(sample.theta - nearNode.S.theta);
+            std::cout<<"interm point "<<interm.x <<" "<<interm.y<<" "<<interm.theta;
+            if(!valid(interm.x,interm.y) && i <= 1)
+            {
+                std::cout<<" this point not valid "<<interm.x<<" "<<interm.y<<" "<<interm.theta<<"\n";
+                result = false;
+                break;
+            }    
+            else if(distance(interm,nearNode.S) > radius1 || !valid(interm.x,interm.y))
             {
                 result = true;
                 break;
@@ -273,13 +325,14 @@ class continuousPlanner : public partial_expansion_A_star
         {
             for(int j=0;j< grid_y;j++)
             {
-                point p(i*res_size,j*res_size,0);
-                double dist = distance(p,newNode.S);
-                if(dist < radius2)
-                {
-                    addReconnectNodeToOPEN(newNode,p);
-                    return true;
-                }
+              double theta = 0; // later change this to arctan2(delX/delY);
+              point p(i*res_size,j*res_size,0);
+              double dist = distance(p,newNode.S);
+              if(dist < radius2)
+              {
+                  addReconnectNodeToOPEN(newNode,p);
+                  return true;
+              }
             }
         }
         return false;

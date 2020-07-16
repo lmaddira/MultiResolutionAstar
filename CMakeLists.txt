@@ -9,7 +9,6 @@ INCLUDE_DIRECTORIES(
   ${CMAKE_SOURCE_DIR}/include
 )
 
-
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 # find_package(OpenMP REQUIRED)
@@ -24,7 +23,7 @@ add_library(visualisation src/visualisation.cpp src/visualisation.h)
 target_link_libraries(visualisation ${OPENGL_LIBRARY} ${GLEW_LIBRARIES} glfw glut)
 
 add_executable(mixedplanner src/planner.cpp src/planner.h src/environment.h src/continousPlanner.h)
-target_link_libraries(mixedplanner visualisation ${OPENGL_LIBRARY} ${GLEW_LIBRARIES} glfw glut)
+target_link_libraries(mixedplanner dubinslib visualisation ${OPENGL_LIBRARY} ${GLEW_LIBRARIES} glfw glut)
 
 # add_executable(visualisation src/visualisation.cpp)
 # target_link_libraries(visualisation ${OPENGL_LIBRARY} ${GLEW_LIBRARIES} glfw glut)

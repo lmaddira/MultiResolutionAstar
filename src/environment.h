@@ -23,7 +23,7 @@ typedef struct point
         this->y = y;
         this->theta = 0;
     }
-    point(double x,double y,int theta)
+    point(double x,double y,double theta)
     {
         this->x = x;
         this->y = y;
@@ -57,7 +57,7 @@ public:
     // {
     //     this->S = S;
     // }
-    Node(int P_ID,point S)
+    Node(int& P_ID,point& S)
     {
         this->parent_ID = P_ID;
         this->S = S;
@@ -105,19 +105,24 @@ void print2DVector(vector<vector<T>> vec)
 class Env_res
 {
 public:
-    double res_size = 0.25; // default for now
+    double res_size = 1; // default for now
     // for now consider 8 connected grid
     double m_res = (int) ceil(1/res_size);
-    int NUMOFDIRS = 8;
-    // int grid_x = (int) ceil(5/res_size);
-    // int grid_y = (int) ceil(5/res_size);
+    int NUMOFDIRS = 26; // no of actions possible
+    int NUMOFTHETAS = 8;
+    double* Theta = new double[NUMOFTHETAS]{0, M_PI/NUMOFTHETAS,2*M_PI/NUMOFTHETAS, 3*M_PI/NUMOFTHETAS, 4*M_PI/NUMOFTHETAS, 5*M_PI/NUMOFTHETAS, 6*M_PI/NUMOFTHETAS,7*M_PI/NUMOFTHETAS};
+    
+
     int map_x = 5;
     int map_y = 5;
     int grid_x = map_x*m_res;
     int grid_y = map_y*m_res;
+    int grid_theta = NUMOFTHETAS;
     vector<vector<int> > grid{ vector<vector<int>> (grid_x, vector<int> (grid_y,0))}; // initiated to 0
-    double* dX = new double[NUMOFDIRS] {-1, -1, -1,  0,  0,  1, 1, 1};
-    double* dY = new double[NUMOFDIRS] {-1,  0,  1, -1,  1, -1, 0, 1};
+    int* dX = new int[NUMOFDIRS] {-1, -1, -1,  0,  0,  1, 1, 1, -1, -1, -1,  0, 0, 0,  1, 1, 1, -1, -1, -1,  0,  0,  0,  1, 1, 1};
+    int* dY = new int[NUMOFDIRS] {-1,  0,  1, -1,  1, -1, 0, 1, -1,  0,  1, -1, 0, 1, -1, 0, 1, -1,  0,  1, -1,  0,  1, -1, 0, 1};
+    int* dTheta = new int[NUMOFDIRS]{0, 0, 0,  0,  0,  0, 0, 0,  1,  1,  1,  1, 1, 1,  1, 1, 1, -1, -1, -1, -1, -1, -1, -1,-1,-1};
+
     // grid of 5,5 which is free in all cells but in 2nd row only a narrow space is left
     Env_res(){};
     ~Env_res(){};
@@ -126,7 +131,8 @@ public:
 
     bool inBounds(point p)
     {
-        if(p.x>=0 && p.x<map_x && p.y>=0 && p.y<map_y)
+        // std::cout<<" in bounds "<< fmod(p.theta,M_PI/NUMOFTHETAS)<<std::endl;
+        if(p.x>=0 && p.x<map_x && p.y>=0 && p.y<map_y && (fmod(p.theta,M_PI/NUMOFTHETAS) < eps))
             return true;
         return false;
     }
@@ -137,7 +143,7 @@ public:
         return false;
     }
 
-    bool valid(point p) // any point need not be in resolution space
+    bool valid(point p) // any point need not be in resolution space -> this is irrespective of theta 
     {  
         if(inBounds(p))
         {     
@@ -149,7 +155,7 @@ public:
         }
         return true;
     }
-     bool valid(double x, double y) // any point need not be in resolution space
+     bool valid(double x, double y) // any point need not be in resolution space  -> this is irrespective of theta 
     {  
         if(inBounds(x,y))
         {     
@@ -161,18 +167,32 @@ public:
         }
         return true;
     }
-    bool cont_to_disc(point p,point& p_g)
+    bool cont_to_disc(point p,point& p_g) 
     {
         std::cout<<"\n multplied by "<<m_res<<" x "<<p.x*m_res<<" y "<< p.y*m_res<<"\n";
-        // if(fmod((p.x*m_res), 1.0)<eps && fmod((p.y*m_res),1.0)<eps)
+        // if(fmod((p.x*m_res), 1.0) <eps && fmod((p.y*m_res),1.0) <eps)
+        if(fmod(p.theta,M_PI/NUMOFTHETAS) < eps) // ensure that these theta for now will be acc to grid theta 
         {
             // p_g.x =(int) ceil(p.x/res_size);
             // p_g.y = (int) ceil(p.y/res_size);
             p_g.x =  round(p.x*m_res);
             p_g.y =  round(p.y*m_res);
+            p_g.theta = p.theta; 
             return true;
         }
         return false;
+    }
+
+    bool cont_discreteangle(double& angle,int& angle_index) // given a continous angle will return position of angle in array Theta
+    {
+        if(fmod(angle,M_PI/NUMOFTHETAS) < eps)
+        {
+            angle_index = round(angle/(M_PI/NUMOFTHETAS));
+            // std::cout<< " angle: "<< angle<<" index : "<< angle_index<<std::endl;
+            return true;
+        }else
+            return false;
+        
     }
 
     vector<point> get_successors(point s)
@@ -182,7 +202,22 @@ public:
         {
             double x =  s.x + dX[i]*res_size;
             double y = s.y + dY[i]*res_size;
-            point p(x,y);
+            int angle_index;
+            double theta;
+            if(cont_discreteangle(s.theta, angle_index) && angle_index >=0 && angle_index< NUMOFTHETAS)
+            {
+                if((angle_index+ dTheta[i]) < 0)
+                    theta = Theta[NUMOFTHETAS + (angle_index+ dTheta[i])];
+                else
+                    theta = Theta[(angle_index+ dTheta[i])];
+                
+            }
+            else
+            {
+                std::cout<<" check something is wrong with the point\n";
+            }
+            
+            point p(x,y,theta);
             if(valid(p))
                 succ_vec.push_back(p);
         }

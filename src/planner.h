@@ -35,7 +35,7 @@ public:
     Node s_start;
     double heuristics(point& p)//in continous space
     {// Euclidean dist currently for forward search
-        return round(1000*sqrt(pow((p.x-goal.x),2)+pow((p.y-goal.y),2)))/1000;
+        return round(1000*sqrt(pow((p.x-goal.x),2)+pow((p.y-goal.y),2)))/1000 + round(abs(p.theta- goal.theta)/(M_PI/NUMOFTHETAS)); 
     }
     double cost(point& p1,point& p2)//in continous space
     {// Euclidean dist currently for forward search
@@ -119,8 +119,8 @@ public:
     double w1 = 2; // weight
     bool goal_reached(Node& n)//in continous space
     {
-        // std::cout<<" n "<<n.S.x<<" ,"<<n.S.y<<" goal "<<goal.x<<" ,"<<goal.y<<"\n";
-        if(abs(n.S.x-goal.x)< eps && abs(n.S.y- goal.y)<eps)
+        std::cout<<" n "<<n.S.x<<" ,"<<n.S.y<<" "<<n.S.theta<<" goal "<<goal.x<<" ,"<<goal.y<<" "<<goal.theta<<"\n";
+        if(abs(n.S.x-goal.x)< eps && abs(n.S.y- goal.y)<eps && abs(n.S.theta - goal.theta) <eps)
         {
             std::cout<<" reached goal \n";
             CLOSED.push_back(n);
@@ -225,6 +225,7 @@ public:
         Init_planner();
         int count = 0;
         while(OPEN.size()!=0)
+        // while(count<2)
         {
             count++;
             Node min_node;
@@ -233,6 +234,10 @@ public:
             double next_best = INT16_MAX;
             vector<point> all_succ = get_successors(min_node.S);
             // std::cout<<" no of succ "<<all_succ.size()<<"\n";
+            // for(auto n: all_succ)
+            // {
+            //     std::cout<<" succ "<<n.x<<" "<<n.y<<" "<<n.theta<<" \n";
+            // }
             // std::cout<<" OPEN \n";
             // for(auto n: OPEN)
             // {
@@ -253,7 +258,7 @@ public:
                         double g = min_node.g + cost(succ,min_node.S);
                         double f = g + w1* heuristics(succ);
                         f = round(1000*f)/1000;
-                        // std::cout<<" f val "<<f;
+                        std::cout<<" f val "<<f;
                         if(min_node.f == f)
                             add_node_OPEN(min_node.current_ID,g,f,succ);
                         else

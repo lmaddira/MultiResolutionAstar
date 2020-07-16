@@ -15,9 +15,9 @@
 class visualise : public planner
 {
 public:
-    int SCREEN_WIDTH = 640;
-    int SCREEN_HEIGHT = 480;
-    int scaling_factor = 60;
+    int SCREEN_WIDTH = 1600;
+    int SCREEN_HEIGHT = 1200;
+    int scaling_factor = 100;
     GLfloat pointsize = 5.0f;
     // lets start the window (0,0) at (200,100) 
     int border = (res_size*scaling_factor);

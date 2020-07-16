@@ -11,22 +11,24 @@ int main(int argc, char** argv)
     vis.initialise();
     // std::cout<< env.get_grid_x()<<" "<< env.get_grid_y()<<"\n";
     env.grid_update();
-    point start(0,0);
-    point goal(4,4);
+    point start(0,0,0);
+    point goal(3,4,4*M_PI/8);
     continuousPlanner planner(start,goal);
     // planner.PEAstar_standalone();
     planner.mixedPlan();
     vector<point> path = planner.find_path();
     env.grid_path_viz(path);
+    std::cout<<" start "<<planner.start.x<<" "<<planner.start.y<<" "<<planner.start.theta<<"\n";
+    std::cout<<" goal "<<planner.goal.x<<" "<<planner.goal.y<<" "<<planner.goal.theta<<"\n";
     std::cout<< "printing OPEN size "<<planner.OPEN.size()<<"\n";
     for(int i=0; i< planner.OPEN.size();i++)
     {
-        std::cout<<" x "<<planner.OPEN[i].S.x<<" y "<<planner.OPEN[i].S.y<<"\n";
+        std::cout<<" x "<<planner.OPEN[i].S.x<<" y "<<planner.OPEN[i].S.y<<" theta "<<planner.OPEN[i].S.theta <<"\n";
     }
     std::cout<< "printing CLOSED size "<<planner.CLOSED.size()<<"\n";
     for(int i=0; i< planner.CLOSED.size();i++)
     {
-        std::cout<<" x "<<planner.CLOSED[i].S.x<<" y "<<planner.CLOSED[i].S.y<<"\n";
+        std::cout<<" x "<<planner.CLOSED[i].S.x<<" y "<<planner.CLOSED[i].S.y<<" theta "<<planner.CLOSED[i].S.theta <<"\n";
     }
     // std::cout<< "printing CSPACE size "<<planner.CSPACE.size()<<"\n";
     // for(int i=0; i< planner.CSPACE.size();i++)
