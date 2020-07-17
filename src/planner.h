@@ -178,16 +178,16 @@ public:
         double next_best = INT16_MAX;
         vector<point> all_succ = get_successors(min_node.S);
         // std::cout<<" no of succ "<<all_succ.size()<<"\n";
-        std::cout<<" OPEN \n";
-        for(auto n: OPEN)
-        {
-            std::cout<<" ID "<<n.current_ID;//<<" f val "<<n.f;
-        }
-        std::cout<<"\n in closed";
-        for(auto n: CLOSED)
-        {
-            std::cout<<" ID "<<n.current_ID;//<<" f val "<<n.f;
-        }
+        // std::cout<<" OPEN \n";
+        // for(auto n: OPEN)
+        // {
+        //     std::cout<<" ID "<<n.current_ID <<" x "<<n.S.x<<" y "<<n.S.y<<" theta "<<n.S.theta;//<<" f val "<<n.f;
+        // }
+        // std::cout<<"\n in closed";
+        // for(auto n: CLOSED)
+        // {
+        //     std::cout<<" ID "<<n.current_ID <<" x "<<n.S.x<<" y "<<n.S.y<<" theta "<<n.S.theta;//<<" f val "<<n.f;
+        // }
         std::cout<<"\n OPEN.size "<<OPEN.size()<<"\n";
         for(auto succ : all_succ)
         {

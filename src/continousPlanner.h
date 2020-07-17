@@ -25,6 +25,7 @@ using namespace std;
 
 #define PI 3.141592654
 #define MINSTEP 0.05
+#define dubins_stepsize 0.05
 int rand50() 
 { // rand() function will generate odd or even number with equal probability. If rand() generates odd number, the function will return 1 else it will return 0. 
     return rand() & 1; 
@@ -33,6 +34,13 @@ bool rand75()
 { // Random Function to that returns 1 with 75% probability and 0 with 25% probability using Bitwise OR 
     return rand50() | rand50(); 
 } 
+vector<point> path_points;
+int pathConfiguration(double q[3], double x, void* user_data) {
+  printf("%f, %f, %f, %f\n", q[0], q[1], q[2], x);
+  point temp(q[0], q[1], q[2]);
+  path_points.push_back(temp);
+  return 0;
+}
 
 //the length of each link in the arm (should be the same as the one used in runtest.m)
 // #define LINKLENGTH_CELLS 10
@@ -190,12 +198,14 @@ class continuousPlanner : public partial_expansion_A_star
     double radius1 = 0.3; // this is the upper bound for extension of the point subject to changes later or can be an input from main
     double radius2 = 0.3; // ditto as above comment
     double weight = 1.1;
+    double turning_radius = 0.4; // dubinspath turning radius
     
     point RandomSample()
     {
       point p;
-      p.x = fmod(rand(),map_x);
-      p.y = fmod(rand(),map_y);
+      p.x = fmod(rand(),100*map_x-2)/100 +1.5; // random number between 1.5 to 4.5
+      p.y = fmod(rand(),100*map_y-2)/100 + 2; // random number between 2 to 5
+
       int theta_index = fmod(rand(),NUMOFTHETAS);
       p.theta = Theta[theta_index]; // we can later change this to random number
       return p;
@@ -246,40 +256,105 @@ class continuousPlanner : public partial_expansion_A_star
         }
     }
     // extend using dubins path
-    bool extend_dubinsPath(Node& newNode,point sample) // true if new node has been found else false
+    bool extend_dubinsPath_reconnect(Node& newNode,point sample) // true if new node has been found else false
     {
         Node nearNode;
         bool result = false;
         nearestNode(nearNode,sample);
         std::cout<<" nearest node is x "<<nearNode.S.x<<" y "<<nearNode.S.y<<" theta "<<nearNode.S.theta<<"\n";
-        double dist =0;
-        point interm;
-        int numofSamples = distance(nearNode.S,sample)/MINSTEP;
-        std::cout<<"distance "<<distance(nearNode.S,sample)<<"\n";
-        for(int i=0;i<numofSamples;i++)
+        double dist = distance(nearNode.S,sample);
+        double start[3] = {nearNode.S.x, nearNode.S.y, nearNode.S.theta}; // start from near node - {x,y,theta}
+        double goal[3];
+        if(dist > radius1)
         {
-            interm.x = nearNode.S.x + ((double)(i)/(numofSamples-1))*(sample.x - nearNode.S.x); 
-            interm.y = nearNode.S.y + ((double)(i)/(numofSamples-1))*(sample.y - nearNode.S.y);
-            interm.theta = nearNode.S.theta + ((double)(i)/(numofSamples-1))*(sample.theta - nearNode.S.theta);
-            std::cout<<"interm point "<<interm.x <<" "<<interm.y<<" "<<interm.theta;
-            if(!valid(interm.x,interm.y) && i <= 1)
+          double direction = atan2((nearNode.S.y - sample.y),(nearNode.S.x - sample.x));
+          goal[0] = (start[0] + radius1 * cos(direction));
+          goal[1] = (start[1] + radius1 * sin(direction));
+          goal[2] = sample.theta;
+        }else
+        {
+          goal[0] = sample.x;
+          goal[1] = sample.y;
+          goal[2] = sample.theta;
+        }
+        DubinsPath path;
+        int res = dubins_shortest_path(&path, start, goal, turning_radius);
+        if(res == 0)
+        {
+          path_points.clear();
+          dubins_path_sample_many(&path, dubins_stepsize, pathConfiguration, NULL); // get the intermidiate points of path in path_points
+          std::cout<<"found a path and interm points are "<<path_points.size()<<"\n";
+          Node parent = nearNode;
+          if(path_points.size() > 2)
+          {
+            for(int i=1;i<path_points.size();i++)
             {
-                std::cout<<" this point not valid "<<interm.x<<" "<<interm.y<<" "<<interm.theta<<"\n";
-                result = false;
-                break;
-            }    
-            else if(distance(interm,nearNode.S) > radius1 || !valid(interm.x,interm.y))
+              std::cout<<" in the loop point is "<< path_points[i].x<<" "<<path_points[i].y<<" "<<path_points[i].theta<<"\n"; 
+              if(valid(path_points[i]))
+              {
+                std::cout<<" point is valid \n";
+                newNode.S = path_points[i];
+                add_node_CSPACE(parent,newNode);
+                parent = newNode;
+                if(!result) result = true;
+              }
+              else break;              
+            }
+          }
+
+        }
+        reconnectToGrid_dubinspath(newNode, nearNode); // see if it makes sense to try to reconnect to all interm points as well        
+        return result;
+    }
+    bool reconnectToGrid_dubinspath(Node& newNode, Node& nearNode)
+    {  
+        // there can be a better way of doing this Check that
+        double min_dist = radius2;
+        for(int i=0;i<grid_x;i++)
+        {
+            for(int j=0;j< grid_y;j++)
             {
-                result = true;
-                break;
+              double theta = goal.theta; // later change this to arctan2(delX/delY);
+              point p(i*res_size,j*res_size,theta);
+              double dist = distance(p,newNode.S);
+              if(dist < radius2 && p!=nearNode.S && valid(p))
+              {
+                double start[] = {newNode.S.x,newNode.S.y,newNode.S.theta};
+                double goal[] = {p.x,p.y,p.theta};
+                DubinsPath path;
+                int res = dubins_shortest_path(&path, start, goal, turning_radius);
+                if(res == 0)
+                {
+                  path_points.clear();
+                  dubins_path_sample_many(&path, dubins_stepsize, pathConfiguration, NULL);
+                  Node parent = newNode;
+                  Node child;
+                  bool flag = true;
+                  // enter in CSPACE only till last but one as last point would be the point in grid let that be connected in OPEN
+                  for(int i=1;i<path_points.size()-1;i++)
+                  {
+                    if(valid(path_points[i]))
+                    {
+                      child.S = path_points[i];
+                      add_node_CSPACE(parent,child);
+                      parent = child;
+                    }
+                    else
+                    {
+                      flag = false;
+                      break;
+                    } 
+                  }
+                  if(flag)
+                  {
+                    addReconnectNodeToOPEN(newNode,p);
+                    return true;
+                  }
+                }
+              }
             }
         }
-        if(result)
-        {
-            newNode.S = interm;
-            add_node_CSPACE(nearNode,newNode);
-        }
-        return result;
+        return false;
     }
     // in general random extention
     bool extend(Node& newNode,point sample) // true if new node has been found else false
@@ -325,10 +400,10 @@ class continuousPlanner : public partial_expansion_A_star
         {
             for(int j=0;j< grid_y;j++)
             {
-              double theta = 0; // later change this to arctan2(delX/delY);
-              point p(i*res_size,j*res_size,0);
+              double theta = goal.theta; // later change this to arctan2(delX/delY);
+              point p(i*res_size,j*res_size,theta);
               double dist = distance(p,newNode.S);
-              if(dist < radius2)
+              if(dist < radius2 && valid(p))
               {
                   addReconnectNodeToOPEN(newNode,p);
                   return true;
@@ -350,10 +425,11 @@ class continuousPlanner : public partial_expansion_A_star
           r = goalSample();
         std::cout<< "sample is x "<<r.x<<" y "<<r.y<<std::endl;
         Node newNode;
-        bool result = extend(newNode,r); // adds new node to CSPACE as well
-        bool reconnectResult;
-        if(result)
-            reconnectResult = reconnectToGrid(newNode);
+        bool result = extend_dubinsPath_reconnect(newNode,r);
+        // bool result = extend(newNode,r); // adds new node to CSPACE as well
+        // bool reconnectResult;
+        // if(result)
+        //     reconnectResult = reconnectToGrid(newNode);
     }
     void mixedPlan()
     {

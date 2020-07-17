@@ -12,7 +12,7 @@ int main(int argc, char** argv)
     // std::cout<< env.get_grid_x()<<" "<< env.get_grid_y()<<"\n";
     env.grid_update();
     point start(0,0,0);
-    point goal(3,4,4*M_PI/8);
+    point goal(3,4,2*M_PI/8);
     continuousPlanner planner(start,goal);
     // planner.PEAstar_standalone();
     planner.mixedPlan();

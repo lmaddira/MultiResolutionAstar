@@ -35,6 +35,12 @@ typedef struct point
             return true;
         return false;
     }
+    bool operator != (const point& rhs)const
+    {
+        if(abs(this->x - rhs.x)<eps && abs(this->y- rhs.y)<eps && abs(this->theta- rhs.theta)<eps)
+            return false;
+        return true;
+    }
 }point;
 
 struct Node
@@ -105,7 +111,7 @@ void print2DVector(vector<vector<T>> vec)
 class Env_res
 {
 public:
-    double res_size = 1; // default for now
+    double res_size = 0.75; // default for now
     // for now consider 8 connected grid
     double m_res = (int) ceil(1/res_size);
     int NUMOFDIRS = 26; // no of actions possible
@@ -132,7 +138,7 @@ public:
     bool inBounds(point p)
     {
         // std::cout<<" in bounds "<< fmod(p.theta,M_PI/NUMOFTHETAS)<<std::endl;
-        if(p.x>=0 && p.x<map_x && p.y>=0 && p.y<map_y && (fmod(p.theta,M_PI/NUMOFTHETAS) < eps))
+        if(p.x>=0 && p.x<map_x && p.y>=0 && p.y<map_y)// && (fmod(p.theta,M_PI/NUMOFTHETAS) < eps))
             return true;
         return false;
     }
@@ -152,8 +158,11 @@ public:
                 if(p.x <= 2 || p.x >=2.8)
                     return false;
             }
+            return true;
         }
-        return true;
+        
+        return false;
+        
     }
      bool valid(double x, double y) // any point need not be in resolution space  -> this is irrespective of theta 
     {  
